@@ -453,6 +453,12 @@ html,body{width:100%;min-height:100%;overflow-x:hidden}
  .drawer-footer>span{max-width:180px;font-size:10px}
 }
 
+</style><style>
+.flow-order-note,.overview-modal-note{display:none!important}
+.navitem[aria-disabled="true"]{cursor:default}
+.navitem[aria-disabled="true"]:hover{background:transparent}
+.history-entry button[data-history-open]:disabled{cursor:default;opacity:1;color:#8db4d1;-webkit-text-fill-color:#8db4d1}
+.history-entry button[data-history-open]:disabled:hover{background:none}
 </style></head><body>
 <div class="app"><aside class="side"><div class="brand"><span class="brand-icon"><i data-lucide="layers-2"></i></span><strong>吾服智造</strong></div><div class="workspace-label">数字化协同平台</div><nav id="side-nav"></nav><div class="side-bottom"><span class="status-dot"></span>服装制造 · 协同管理</div></aside><div class="work"><header class="top"><div class="breadcrumbs"><i data-lucide="panel-left"></i><span>工作台</span><span class="slash">/</span><strong>首页</strong></div><div class="top-right"><i data-lucide="search"></i><i data-lucide="bell"></i><i data-lucide="maximize"></i><span class="top-divider"></span><span>嘉绣服饰</span><span class="avatar">嘉</span><i data-lucide="chevron-down"></i></div></header><div class="history"><span class="history-label"><i data-lucide="history"></i>历史访问</span><div class="history-tabs" id="history-tabs"></div><span class="demo-badge">蓝紫配色方案 · 示例数据</span></div>
 <main class="dashboard"><div class="left-stack"><section class="panel alerts-panel"><div class="panel-head"><h2><i data-lucide="triangle-alert"></i>预警 / 告警 <span class="unread-tag">2 条未查看</span></h2><div class="alert-filters"><button class="active" data-alert-filter="all">全部 3</button><button data-alert-filter="unread">未查看 2</button></div></div><table class="alert-table"><thead><tr><th>类型</th><th>预警内容</th><th>查看状态</th><th>操作</th></tr></thead><tbody id="alert-body"></tbody></table><div class="panel-foot"><span>共 3 条记录</span><span>未查看 <b>2</b> 条 · 已查看 <b>1</b> 条</span></div></section>
@@ -20209,7 +20215,7 @@ document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',
  };
  const detail=document.querySelector('.inline-expander');
  const modal=document.createElement('dialog');modal.className='overview-modal';modal.setAttribute('aria-labelledby','overview-modal-title');
- modal.innerHTML=`<div class="overview-modal-header"><h3 id="overview-modal-title">业务详情</h3><button aria-label="关闭业务详情">${icon('x')}</button></div><div class="overview-modal-body"></div><div class="overview-modal-note">示例快照 · 详细数据按选中环节展示；进度指标各自统计，不代表环节之间的转化率。</div>`;
+ modal.innerHTML=`<div class="overview-modal-header"><h3 id="overview-modal-title">业务详情</h3><button aria-label="关闭业务详情">${icon('x')}</button></div><div class="overview-modal-body"></div>`;
  document.body.append(modal);modal.querySelector('.overview-modal-body').append(detail);
  document.querySelector('.production-body').innerHTML=`<div class="overview-grid" aria-label="十个业务环节概况">${darkStages.map((s,i)=>{const d=window.demoProgress[s.id],copy=summaries[s.id];return `<article class="overview-card" data-overview-stage="${s.id}"><div class="overview-heading"><span class="overview-symbol">${icon(s.icon)}</span><h3>${s.label}</h3><span class="overview-seq">${String(i+1).padStart(2,'0')}</span></div><div class="overview-metric"><span>${d.metric}</span><strong>${d.p}<small>%</small></strong></div><div class="overview-copy"><p>${copy[0]}</p><p>${copy[1]}</p></div><div class="overview-card-footer"><span class="overview-footnote">${copy[2]}</span><button class="overview-detail" data-overview-detail="${s.id}" aria-haspopup="dialog">${s.id==='order'?'查看趋势':'查看详情'}${icon('arrow-up-right')}</button></div></article>`;}).join('')}</div>`;
  const previousSelect=selectStage;let lastTrigger=null;
@@ -20269,7 +20275,7 @@ document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',
 </script><script>
 {
  const cards=[...document.querySelectorAll('.overview-card')];
- function selectOverview(id){cards.forEach((card,i)=>{const selected=card.dataset.overviewStage===id;card.classList.toggle('is-selected',selected);card.setAttribute('aria-label',darkStages[i].label+'业务概况'+(selected?'，已选中':''));card.querySelector('.overview-seq').innerHTML=String(i+1).padStart(2,'0')+(selected?'<span>已选中</span>':'');});}
+ function selectOverview(id){cards.forEach((card,i)=>{const selected=card.dataset.overviewStage===id;card.classList.toggle('is-selected',selected);card.setAttribute('aria-label',darkStages[i].label+'业务概况');card.querySelector('.overview-seq').textContent=String(i+1).padStart(2,'0');card.setAttribute('aria-pressed',String(selected));});}
  cards.forEach(card=>{card.tabIndex=0;card.setAttribute('role','group');card.addEventListener('click',()=>selectOverview(card.dataset.overviewStage));card.addEventListener('keydown',event=>{if(event.target===card&&(event.key==='Enter'||event.key===' ')){event.preventDefault();selectOverview(card.dataset.overviewStage);}});});
  selectOverview('plan');
  const taskColors=['#329dff','#29dba5','#a68aff','#ffc45c','#17c4df'];
@@ -20565,4 +20571,35 @@ document.querySelectorAll('[data-stage]').forEach(b=>b.addEventListener('click',
  window.wufuWorkbench={openGuide,history:()=>history.slice(),openTask:i=>openList(taskContexts[i]),unread:()=>darkAlerts.filter(a=>!a.viewed).length};
 })();
 
+</script><script>
+(() => {
+ document.querySelectorAll('.flow-order-note,.overview-modal-note').forEach(node=>node.remove());
+ // Disabled sidebar entries retain the agreed visual presentation.
+ document.querySelectorAll('#side-nav .navitem').forEach((node,index)=>{
+  if(index===0)return;
+  const label=node.cloneNode(true);
+  label.removeAttribute('role');label.tabIndex=-1;label.removeAttribute('title');
+  label.setAttribute('aria-disabled','true');node.replaceWith(label);
+ });
+ const tabs=document.getElementById('history-tabs');
+ function lockHistory(){
+  tabs.querySelectorAll('[data-history-open]').forEach(button=>{
+   if(button.dataset.historyOpen==='首页')return;
+   button.disabled=true;button.tabIndex=-1;button.setAttribute('aria-disabled','true');
+  });
+ }
+ // Capture also protects newly rendered labels before the observer runs.
+ tabs.addEventListener('click',event=>{
+  const button=event.target.closest('[data-history-open]');
+  if(button&&button.dataset.historyOpen!=='首页'){event.preventDefault();event.stopImmediatePropagation();}
+ },true);
+ lockHistory();new MutationObserver(lockHistory).observe(tabs,{childList:true,subtree:true});
+ // The in-page guide reflects the restricted navigation instead of promising other routes.
+ const guide=window.wufuWorkbench.openGuide;
+ window.wufuWorkbench.openGuide=function(){guide();
+  document.querySelectorAll('.guide-card').forEach(card=>{if(card.querySelector('strong')?.textContent==='历史访问')card.querySelector('p').textContent='本版仅演示首页交互。历史标签保留展示，其他页面入口不跳转。';});
+ };
+ const badge=document.querySelector('.demo-badge');badge.onclick=window.wufuWorkbench.openGuide;
+ document.title='吾服智造 · 首页交互限定版';
+})();
 </script></body></html>
